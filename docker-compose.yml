@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Express backend
+  server:
+    build: ./server
+    container_name: taskboard-server
+    ports:
+      - "5000:5000" # Adjust if your backend runs on a different port
+    volumes:
+      - taskboard:/app
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=12345
+      - DB_NAME=taskboard
+    networks:
+      - taskboard-network
+
+  # React Native app (Expo)
+  app:
+    build: ./app
+    container_name: taskboard-app
+    ports:
+      - "19000:19000" # Default Expo port
+    volumes:
+      - taskboard:/app
+    environment:
+      - EXPO_DEV_TOOLS_LISTEN=0.0.0.0
+    networks:
+      - taskboard-network
+
+  # React frontend (optional)
+  web:
+    build: ./web
+    container_name: taskboard-web
+    ports:
+      - "3000:3000" # Adjust for React frontend
+    volumes:
+      - taskboard:/app
+    environment:
+      - REACT_APP_API_URL=http://server:5000
+    networks:
+      - taskboard-network
+
+  # MySQL database
+  db:
+    image: mysql:8
+    container_name: taskboard-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=taskboard
+    volumes:
+      - taskboard-db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - taskboard-network
+
+networks:
+  taskboard-network:
+    driver: bridge
+
+volumes:
+  taskboard:
+  taskboard-db-data:
+
